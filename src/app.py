@@ -134,3 +134,108 @@ plt.show()
 # Stats for Price
 price_stats = data_adquiered["price"].describe()
 price_stats
+
+# IQR for Price
+
+price_iqr = price_stats["75%"] - price_stats["25%"]
+upper_limit = price_stats["75%"] + 1.5 * price_iqr
+lower_limit = price_stats["25%"] - 1.5 * price_iqr
+
+print(f"The upper and lower limits for finding outliers are {round(upper_limit, 2)} and {round(lower_limit, 2)}, with an interquartile range of {round(price_iqr, 2)}")
+
+# Clean the outliers
+
+total_data = data_adquiered[data_adquiered["price"] > 0]
+
+#Night stays
+
+nights_stats = data_adquiered["minimum_nights"].describe()
+nights_stats
+
+# IQR for minimum_nights
+nights_iqr = nights_stats["75%"] - nights_stats["25%"]
+
+upper_limit = nights_stats["75%"] + 1.5 * nights_iqr
+lower_limit = nights_stats["25%"] - 1.5 * nights_iqr
+
+print(f"The upper and lower limits for finding outliers are {round(upper_limit, 2)} and {round(lower_limit, 2)}, with an interquartile range of {round(nights_iqr, 2)}")
+
+# Clean the outliers
+
+total_data = total_data[total_data["minimum_nights"] <= 15]
+
+# Stats for number_of_reviews
+
+review_stats = total_data["number_of_reviews"].describe()
+review_stats
+
+# IQR for number_of_reviews
+
+review_iqr = review_stats["75%"] - review_stats["25%"]
+
+upper_limit = review_stats["75%"] + 1.5 * review_iqr
+lower_limit = review_stats["25%"] - 1.5 * review_iqr
+
+print(f"The upper and lower limits for finding outliers are {round(upper_limit, 2)} and {round(lower_limit, 2)}, with an interquartile range of {round(review_iqr, 2)}")
+
+# Stats for calculated_host_listings_count
+
+hostlist_stats = total_data["calculated_host_listings_count"].describe()
+hostlist_stats
+
+# IQR for calculated_host_listings_count
+
+hostlist_iqr = hostlist_stats["75%"] - hostlist_stats["25%"]
+
+upper_limit = hostlist_stats["75%"] + 1.5 * hostlist_iqr
+lower_limit = hostlist_stats["25%"] - 1.5 * hostlist_iqr
+
+print(f"The upper and lower limits for finding outliers are {round(upper_limit, 2)} and {round(lower_limit, 2)}, with an interquartile range of {round(hostlist_iqr, 2)}")
+
+count_04 = sum(1 for x in total_data["calculated_host_listings_count"] if x in range(0, 5))
+count_1 = total_data[total_data["calculated_host_listings_count"] == 1].shape[0]
+count_2 = total_data[total_data["calculated_host_listings_count"] == 2].shape[0]
+
+print("Count of 0: ", count_04)
+print("Count of 1: ", count_1)
+print("Count of 2: ", count_2)
+
+# Clean the outliers
+
+total_data = total_data[total_data["calculated_host_listings_count"] > 4]
+
+# Count NaN
+total_data.isnull().sum().sort_values(ascending = False)
+
+#scaling
+
+from sklearn.preprocessing import MinMaxScaler
+
+num_variables = ["number_of_reviews", "minimum_nights", "calculated_host_listings_count", 
+                 "availability_365", "neighbourhood_group", "room_type"]
+scaler = MinMaxScaler()
+scal_features = scaler.fit_transform(total_data[num_variables])
+df_scal = pd.DataFrame(scal_features, index = total_data.index, columns = num_variables)
+df_scal["price"] = total_data["price"]
+df_scal.head()
+
+
+#Feature selection
+
+from sklearn.feature_selection import chi2, SelectKBest
+from sklearn.model_selection import train_test_split
+
+X = df_scal.drop("price", axis = 1)
+y = df_scal["price"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+
+
+selection_model = SelectKBest(chi2, k = 4)
+selection_model.fit(X_train, y_train)
+ix = selection_model.get_support()
+X_train_sel = pd.DataFrame(selection_model.transform(X_train), columns = X_train.columns.values[ix])
+X_test_sel = pd.DataFrame(selection_model.transform(X_test), columns = X_test.columns.values[ix])
+
+X_train_sel.head()
+
