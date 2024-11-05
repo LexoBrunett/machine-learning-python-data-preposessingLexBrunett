@@ -145,7 +145,7 @@ print(f"The upper and lower limits for finding outliers are {round(upper_limit, 
 
 # Clean the outliers
 
-total_data = data_adquiered[data_adquiered["price"] > 0]
+data_adquiered = data_adquiered[data_adquiered["price"] > 0]
 
 #Night stays
 
@@ -162,11 +162,11 @@ print(f"The upper and lower limits for finding outliers are {round(upper_limit, 
 
 # Clean the outliers
 
-total_data = total_data[total_data["minimum_nights"] <= 15]
+total_data = data_adquiered[data_adquiered["minimum_nights"] <= 15]
 
 # Stats for number_of_reviews
 
-review_stats = total_data["number_of_reviews"].describe()
+review_stats = data_adquiered["number_of_reviews"].describe()
 review_stats
 
 # IQR for number_of_reviews
@@ -180,7 +180,7 @@ print(f"The upper and lower limits for finding outliers are {round(upper_limit, 
 
 # Stats for calculated_host_listings_count
 
-hostlist_stats = total_data["calculated_host_listings_count"].describe()
+hostlist_stats = data_adquiered["calculated_host_listings_count"].describe()
 hostlist_stats
 
 # IQR for calculated_host_listings_count
@@ -192,9 +192,9 @@ lower_limit = hostlist_stats["25%"] - 1.5 * hostlist_iqr
 
 print(f"The upper and lower limits for finding outliers are {round(upper_limit, 2)} and {round(lower_limit, 2)}, with an interquartile range of {round(hostlist_iqr, 2)}")
 
-count_04 = sum(1 for x in total_data["calculated_host_listings_count"] if x in range(0, 5))
-count_1 = total_data[total_data["calculated_host_listings_count"] == 1].shape[0]
-count_2 = total_data[total_data["calculated_host_listings_count"] == 2].shape[0]
+count_04 = sum(1 for x in data_adquiered["calculated_host_listings_count"] if x in range(0, 5))
+count_1 = data_adquiered[data_adquiered["calculated_host_listings_count"] == 1].shape[0]
+count_2 = data_adquiered[data_adquiered["calculated_host_listings_count"] == 2].shape[0]
 
 print("Count of 0: ", count_04)
 print("Count of 1: ", count_1)
@@ -202,10 +202,10 @@ print("Count of 2: ", count_2)
 
 # Clean the outliers
 
-total_data = total_data[total_data["calculated_host_listings_count"] > 4]
+total_data = data_adquiered[data_adquiered["calculated_host_listings_count"] > 4]
 
 # Count NaN
-total_data.isnull().sum().sort_values(ascending = False)
+data_adquiered.isnull().sum().sort_values(ascending = False)
 
 #scaling
 
@@ -214,9 +214,9 @@ from sklearn.preprocessing import MinMaxScaler
 num_variables = ["number_of_reviews", "minimum_nights", "calculated_host_listings_count", 
                  "availability_365", "neighbourhood_group", "room_type"]
 scaler = MinMaxScaler()
-scal_features = scaler.fit_transform(total_data[num_variables])
-df_scal = pd.DataFrame(scal_features, index = total_data.index, columns = num_variables)
-df_scal["price"] = total_data["price"]
+scal_features = scaler.fit_transform(data_adquiered[num_variables])
+df_scal = pd.DataFrame(scal_features, index = data_adquiered.index, columns = num_variables)
+df_scal["price"] = data_adquiered["price"]
 df_scal.head()
 
 
